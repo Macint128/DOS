@@ -21,7 +21,6 @@
             flex-direction: column;
             height: 100vh;
             transition: background-color 1s, color 1s, font-family 1s;
-            overflow: hidden;
         }
 
         .header {
@@ -29,7 +28,6 @@
             padding: 10px;
             text-align: center;
             border-bottom: 1px solid #00FF00;
-            user-select: none;
         }
 
         .chat-window {
@@ -38,7 +36,6 @@
             overflow-y: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            user-select: text;
         }
 
         .input-area {
@@ -107,8 +104,11 @@
             color: white;
             padding: 5px;
             font-weight: bold;
-            cursor: move;
-            user-select: none;
+            cursor: grab;
+        }
+
+        .window-header:active {
+            cursor: grabbing;
         }
 
         .window-body {
@@ -117,7 +117,6 @@
             white-space: pre;
             font-size: 14px;
             color: black;
-            user-select: text;
         }
 
         .window button {
@@ -125,7 +124,6 @@
             padding: 5px 10px;
             font-family: Arial, sans-serif;
             cursor: pointer;
-            user-select: none;
         }
 
         /* 작업표시줄 */
@@ -144,7 +142,6 @@
             font-size: 14px;
             color: black;
             z-index: 1000;
-            user-select: none;
         }
 
         .start-button {
@@ -208,8 +205,11 @@
             color: white;
             padding: 5px;
             font-weight: bold;
-            cursor: move;
-            user-select: none;
+            cursor: grab;
+        }
+
+        .floating-window-header:active {
+            cursor: grabbing;
         }
 
         .floating-window-body {
@@ -218,7 +218,6 @@
             white-space: pre-wrap;
             font-size: 14px;
             color: black;
-            user-select: text;
         }
 
         .floating-window button {
@@ -226,54 +225,6 @@
             padding: 5px 10px;
             font-family: Arial, sans-serif;
             cursor: pointer;
-            user-select: none;
-        }
-
-        /* File Explorer Tree */
-        .folder {
-            cursor: pointer;
-            user-select: none;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .folder::before {
-            content: "▶ ";
-            display: inline-block;
-            transform-origin: center;
-            transition: transform 0.2s ease;
-        }
-
-        .folder.open::before {
-            transform: rotate(90deg);
-        }
-
-        .file-list {
-            margin-left: 20px;
-            display: none;
-            user-select: text;
-        }
-
-        .file-list.open {
-            display: block;
-        }
-
-        /* Shutdown overlay */
-        #shutdown-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 2s ease;
-            z-index: 2000;
-        }
-        #shutdown-overlay.active {
-            opacity: 1;
-            pointer-events: all;
         }
     </style>
 </head>
@@ -288,9 +239,9 @@
     </div>
 
     <!-- GUI 영역 -->
-    <div id="gui-window" style="display:none;">
-        <div class="window">
-            <div class="window-header">Windows Upgrade</div>
+    <div id="gui-window" style="display:none; position: relative;">
+        <div class="window" id="upgrade-window" style="margin:0 auto; top:auto; left:auto;">
+            <div class="window-header" id="upgrade-window-header">Windows Upgrade</div>
             <div class="window-body" id="gui-body">
                 Ready to upgrade...
             </div>
@@ -300,7 +251,7 @@
 
     <!-- 작업표시줄 -->
     <div class="taskbar" id="taskbar" style="display:none;">
-        <div class="start-button">Start</div>
+        <div class="start-button" id="start-button">Start</div>
         <div class="taskbar-clock" id="taskbar-clock">00:00</div>
     </div>
 
@@ -308,12 +259,11 @@
     <div class="start-menu" id="start-menu">
         <button onclick="openSettings()">Settings</button>
         <button onclick="openFileExplorer()">File Explorer</button>
-        <button onclick="shutdown()">Shutdown</button>
     </div>
 
     <!-- Settings Window -->
     <div class="floating-window" id="settings-window" style="display:none;">
-        <div class="floating-window-header">Settings</div>
+        <div class="floating-window-header" id="settings-header">Settings</div>
         <div class="floating-window-body">
             <p>OS Settings</p>
             <button onclick="manualUpgrade()">Update OS</button>
@@ -323,38 +273,18 @@
 
     <!-- File Explorer Window -->
     <div class="floating-window" id="explorer-window" style="display:none;">
-        <div class="floating-window-header">File Explorer</div>
-        <div class="floating-window-body" id="explorer-body">
-            <div class="folder">Program Files
-                <div class="file-list">
-                    <div>App1.exe</div>
-                    <div>App2.exe</div>
-                </div>
-            </div>
-            <div class="folder">Users
-                <div class="file-list">
-                    <div>Junho</div>
-                    <div>Guest</div>
-                </div>
-            </div>
-            <div class="folder">Windows
-                <div class="file-list">
-                    <div>System32</div>
-                    <div>Explorer.exe</div>
-                </div>
-            </div>
-            <div class="folder">Documents
-                <div class="file-list">
-                    <div>Readme.txt</div>
-                    <div>Notes.doc</div>
-                </div>
-            </div>
+        <div class="floating-window-header" id="explorer-header">File Explorer</div>
+        <div class="floating-window-body">
+            <p>[C:] Drive</p>
+            <ul>
+                <li>Program Files</li>
+                <li>Users</li>
+                <li>Windows</li>
+                <li>Documents</li>
+            </ul>
             <button onclick="closeExplorer()">Close</button>
         </div>
     </div>
-
-    <!-- Shutdown overlay -->
-    <div id="shutdown-overlay"></div>
 
     <script>
         const chatWindow = document.getElementById('chat-window');
@@ -366,15 +296,15 @@
         const upgradeBtn = document.getElementById('upgrade-button');
         const taskbar = document.getElementById('taskbar');
         const startMenu = document.getElementById('start-menu');
+        const startButton = document.getElementById('start-button');
+
         const settingsWindow = document.getElementById('settings-window');
         const explorerWindow = document.getElementById('explorer-window');
-        const shutdownOverlay = document.getElementById('shutdown-overlay');
 
         const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
         let currentOSIndex = 0;
         let upgrading = false;
 
-        // --- 메시지 출력 ---
         function appendMessage(content, type) {
             const msg = document.createElement('div');
             msg.classList.add(type + '-message', 'message');
@@ -383,7 +313,6 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // --- 메시지 전송 ---
         function sendMessage() {
             if(upgrading) return;
             const text = chatInput.value.trim();
@@ -393,58 +322,79 @@
             processBotResponse(text);
         }
 
-        // --- 봇 응답 처리 ---
         function processBotResponse(text) {
-            // 간단 명령어 처리
-            const lower = text.toLowerCase();
+            if (text.toLowerCase() === '/dos -u upgrade') {
+                if(currentOSIndex >= osVersions.length - 1){
+                    appendMessage("Already at latest OS: " + osVersions[currentOSIndex], 'bot');
+                } else {
+                    upgradeOS();
+                }
+                return;
+            }
 
-            if (lower === 'help') {
-                appendMessage("Commands:\n- gui : GUI 모드 실행\n- upgrade : OS 업그레이드 시작\n- shutdown : 종료", 'bot');
-            } else if (lower === 'gui') {
-                enterGUIMode();
-            } else if (lower === 'upgrade') {
-                startProgress();
-            } else if (lower === 'shutdown') {
-                shutdown();
+            let response = '';
+            switch (text.toLowerCase()) {
+                case 'help':
+                    response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos -u upgrade";
+                    break;
+                case 'hello':
+                    response = "Hi there! I'm DOSBot. 🤖";
+                    break;
+                case 'time':
+                    response = "Current time is: " + new Date().toLocaleTimeString();
+                    break;
+                case 'clear':
+                    chatWindow.innerHTML = '';
+                    return;
+                default:
+                    response = "Unknown command. Type 'help' for list of commands.";
+            }
+
+            setTimeout(() => appendMessage(response, 'bot'), 500);
+        }
+
+        function upgradeOS() {
+            currentOSIndex++;
+            const newOS = osVersions[currentOSIndex];
+
+            if(currentOSIndex === 1) {
+                document.body.classList.add('gui-mode');
+                chatWindow.style.display = 'none';
+                inputArea.style.display = 'none';
+                header.textContent = '[ ' + newOS + ' ]';
+                guiWindow.style.display = 'block';
+                taskbar.style.display = 'flex';
+                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
+                upgradeBtn.style.display = 'inline-block';
+                upgradeBtn.textContent = 'Start Upgrade';
+            } else if(currentOSIndex > 1) {
+                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
+                upgradeBtn.style.display = 'inline-block';
+                upgradeBtn.textContent = 'Start Upgrade';
             } else {
-                appendMessage("명령어를 모르겠어요! 'help'를 입력해보세요.", 'bot');
+                appendMessage("System upgraded to " + newOS + " 🚀", 'bot');
             }
         }
 
-        // --- GUI 모드로 전환 ---
-        function enterGUIMode() {
-            document.body.classList.add('gui-mode');
-            header.style.display = 'none';
-            chatWindow.style.display = 'none';
-            inputArea.style.display = 'none';
-            guiWindow.style.display = 'block';
-            taskbar.style.display = 'flex';
-        }
-
-        // --- 업그레이드 진행 ---
         function startProgress() {
-            if(upgrading) return;
             upgrading = true;
-            upgradeBtn.disabled = true;
+            upgradeBtn.style.display = 'none';
             let progress = 0;
-            guiBody.textContent = '업그레이드 진행 중: 0%';
-
+            guiBody.textContent = 'Upgrading: 0%';
             const interval = setInterval(() => {
-                progress += 5;
-                guiBody.textContent = `업그레이드 진행 중: ${progress}%`;
-                if(progress >= 100) {
+                progress += 10;
+                guiBody.textContent = 'Upgrading: ' + progress + '%';
+                if (progress >= 100) {
                     clearInterval(interval);
                     upgrading = false;
-                    upgradeBtn.disabled = false;
-                    currentOSIndex = (currentOSIndex + 1) % osVersions.length;
-                    guiBody.textContent = `업그레이드 완료! 현재 OS: ${osVersions[currentOSIndex]}`;
+                    guiBody.textContent = 'Upgrade Complete!\nYou are now using ' + osVersions[currentOSIndex];
+                    header.textContent = '[ ' + osVersions[currentOSIndex] + ' ]';
                 }
-            }, 300);
+            }, 500);
         }
 
-        // --- 작업표시줄 시작버튼 ---
-        const startBtn = document.querySelector('.start-button');
-        startBtn.addEventListener('click', () => {
+        // 작업표시줄 시작 버튼 클릭 이벤트 - 시작메뉴 토글
+        startButton.addEventListener('click', () => {
             if (startMenu.style.display === 'flex') {
                 startMenu.style.display = 'none';
             } else {
@@ -452,115 +402,85 @@
             }
         });
 
-        // --- 설정 창 ---
+        // 시작 메뉴 항목 함수들
         function openSettings() {
-            settingsWindow.style.display = 'block';
             startMenu.style.display = 'none';
+            settingsWindow.style.display = 'block';
             bringToFront(settingsWindow);
         }
         function closeSettings() {
             settingsWindow.style.display = 'none';
         }
 
-        // --- 파일 탐색기 창 ---
         function openFileExplorer() {
-            explorerWindow.style.display = 'block';
             startMenu.style.display = 'none';
+            explorerWindow.style.display = 'block';
             bringToFront(explorerWindow);
         }
         function closeExplorer() {
             explorerWindow.style.display = 'none';
         }
 
-        // --- OS 수동 업그레이드 ---
-        function manualUpgrade() {
-            if(upgrading) return;
-            startProgress();
-        }
+        // 창 드래그 이동 기능
+        function makeDraggable(el, handle) {
+            let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
 
-        // --- Shutdown ---
-        function shutdown() {
-            startMenu.style.display = 'none';
-            shutdownOverlay.classList.add('active');
-            setTimeout(() => {
-                // 초기 상태로 되돌리기 (예: 검은 화면 유지)
-                alert("컴퓨터가 꺼졌습니다... 농담이에요! 😆 다시 시작하려면 새로고침하세요.");
-            }, 2500);
-        }
+            handle.onmousedown = dragMouseDown;
 
-        // --- 폴더 열기/닫기 기능 ---
-        const folders = document.querySelectorAll('.folder');
-        folders.forEach(folder => {
-            folder.addEventListener('click', () => {
-                folder.classList.toggle('open');
-                const fileList = folder.querySelector('.file-list');
-                if(fileList) {
-                    fileList.classList.toggle('open');
-                }
-            });
-        });
-
-        // --- 드래그 이동 기능 ---
-        function makeDraggable(element, handleSelector) {
-            const handle = element.querySelector(handleSelector);
-            let isDragging = false;
-            let offsetX, offsetY;
-
-            handle.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                const rect = element.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
-                element.style.transition = 'none';
-                element.style.zIndex = 1500;
+            function dragMouseDown(e) {
                 e.preventDefault();
-            });
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+                handle.style.cursor = 'grabbing';
+            }
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    element.style.left = (e.clientX - offsetX) + 'px';
-                    element.style.top = (e.clientY - offsetY) + 'px';
-                }
-            });
+            function elementDrag(e) {
+                e.preventDefault();
+                posX = mouseX - e.clientX;
+                posY = mouseY - e.clientY;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
 
-            document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    element.style.zIndex = 1200;
-                }
-            });
+                const rect = el.getBoundingClientRect();
+
+                el.style.top = (rect.top - posY) + "px";
+                el.style.left = (rect.left - posX) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                handle.style.cursor = 'grab';
+            }
         }
 
-        // 적용 대상들 드래그 활성화
-        makeDraggable(settingsWindow, '.floating-window-header');
-        makeDraggable(explorerWindow, '.floating-window-header');
+        // 적용: Settings 창, Explorer 창, Upgrade 창 (GUI 모드 윈도우)
+        makeDraggable(settingsWindow, document.getElementById('settings-header'));
+        makeDraggable(explorerWindow, document.getElementById('explorer-header'));
+        makeDraggable(document.getElementById('upgrade-window'), document.getElementById('upgrade-window-header'));
 
-        // --- 작업표시줄 시계 업데이트 ---
-        function updateClock() {
-            const now = new Date();
-            let h = now.getHours();
-            let m = now.getMinutes();
-            let s = now.getSeconds();
-            if (h < 10) h = '0' + h;
-            if (m < 10) m = '0' + m;
-            if (s < 10) s = '0' + s;
-            document.getElementById('taskbar-clock').textContent = `${h}:${m}:${s}`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // --- 창 전면으로 올리기 ---
+        // 창을 최상단으로 올려주기 (z-index)
         function bringToFront(el) {
-            // 간단히 z-index 올리기 (모든 floating-window 중 최대값+1)
             const windows = document.querySelectorAll('.floating-window');
-            let maxZ = 1200;
+            let maxZ = 1000;
             windows.forEach(w => {
-                const z = parseInt(window.getComputedStyle(w).zIndex);
+                const z = parseInt(window.getComputedStyle(w).zIndex) || 1000;
                 if (z > maxZ) maxZ = z;
             });
             el.style.zIndex = maxZ + 1;
         }
 
+        // 키보드 Enter로 보내기
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 초기 상태
+        appendMessage("System ready. Type 'help' for commands.", 'bot');
     </script>
 </body>
 </html>
