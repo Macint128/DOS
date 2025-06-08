@@ -1,240 +1,439 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>마리오</title>
-    <!-- 홈 화면 아이콘 설정 -->
-    <link rel="apple-touch-icon" href="icon.PNG" />
-    <meta name="apple-mobile-web-app-title" content="타이틀" />
-
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #5c94fc;
-            font-family: 'Press Start 2P', sans-serif;
-        }
-
-        canvas {
-            display: block;
-            background-color: #5c94fc;
-        }
-
-        /* 닌텐도 초기 컨트롤러 스타일 */
-        .controller {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 10;
-            gap: 10px;
-        }
-
-        .dpad {
-            display: grid;
-            grid-template-columns: 60px 60px 60px;
-            grid-template-rows: 60px 60px 60px;
-            gap: 5px;
-        }
-
-        .dpad button {
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            border-radius: 5px;
-            border: 3px solid #333;
-            background: #aaa;
-            box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #666;
-            user-select: none;
-        }
-
-        .dpad button:active {
-            background: #ddd;
-            box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #666;
-        }
-
-        .buttons {
-            margin-top: 10px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .buttons button {
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            border-radius: 50%;
-            border: 3px solid #333;
-            background: #e60012;
-            color: #fff;
-            box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #900;
-            user-select: none;
-        }
-
-        .buttons button:active {
-            background: #ff4444;
-            box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #900;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>마리오</title>
+<link rel="apple-touch-icon" href="icon.PNG" />
+<meta name="apple-mobile-web-app-title" content="마리오" />
+<style>
+  body {
+    margin:0; overflow:hidden; background:#5c94fc; font-family:'Press Start 2P', sans-serif;
+  }
+  canvas {
+    display:block; background:#5c94fc;
+  }
+  .controller {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; z-index:10; gap:10px;
+  }
+  .dpad {
+    display:grid; grid-template-columns:60px 60px 60px;
+    grid-template-rows:60px 60px 60px; gap:5px;
+  }
+  .dpad button {
+    width:60px; height:60px; font-size:24px; border-radius:5px;
+    border:3px solid #333; background:#aaa;
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #666;
+    user-select:none;
+  }
+  .dpad button:active {
+    background:#ddd;
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #666;
+  }
+  .buttons {
+    margin-top:10px; display:flex; gap:20px;
+  }
+  .buttons button {
+    width:60px; height:60px; font-size:24px; border-radius:50%;
+    border:3px solid #333; background:#e60012; color:#fff;
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #900;
+    user-select:none;
+  }
+  .buttons button:active {
+    background:#ff4444;
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #900;
+  }
+</style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+<canvas id="gameCanvas"></canvas>
 
-    <!-- 닌텐도 스타일 컨트롤러 -->
-    <div class="controller">
-        <div class="dpad">
-            <button id="empty1"></button>
-            <button id="up">⬆️</button>
-            <button id="empty2"></button>
-            <button id="left">⬅️</button>
-            <button id="empty3"></button>
-            <button id="right">➡️</button>
-            <button id="empty4"></button>
-            <button id="down">⬇️</button>
-            <button id="empty5"></button>
-        </div>
-        <div class="buttons">
-            <button id="jump">A</button>
-        </div>
-    </div>
+<div class="controller">
+  <div class="dpad">
+    <button id="empty1"></button>
+    <button id="up">⬆️</button>
+    <button id="empty2"></button>
+    <button id="left">⬅️</button>
+    <button id="empty3"></button>
+    <button id="right">➡️</button>
+    <button id="empty4"></button>
+    <button id="down">⬇️</button>
+    <button id="empty5"></button>
+  </div>
+  <div class="buttons">
+    <button id="jump">A</button>
+    <button id="run">B</button>
+  </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const gravity = 0.6;
+  const friction = 0.85;
+
+  // 플레이어
+  const player = {
+    x: 100,
+    y: 300,
+    width: 40,
+    height: 40,
+    color: 'red',
+    velocityX: 0,
+    velocityY: 0,
+    speed: 4,
+    isOnGround: false,
+    isRunning: false,
+    powerUp: 'small' // 'small', 'mushroom', 'fireflower'
+  };
+
+  // 땅
+  const ground = {
+    x: 0,
+    y: canvas.height - 50,
+    width: canvas.width,
+    height: 50,
+    color: 'green'
+  };
+
+  // 블록 (아이템 블록)
+  const block = {
+    x: canvas.width/2 - 50,
+    y: ground.y - 70,
+    width: 100,
+    height: 40,
+    color: '#b5651d'  // 갈색
+  };
+
+  // 아이템들
+  let items = []; // 버섯, 파이어 플라워
+
+  // 적들: 굼바, 고마
+  let enemies = [];
+
+  // 굼바 생성
+  class Goomba {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.width = 30;
+      this.height = 30;
+      this.color = '#8b4513'; // 갈색
+      this.velocityX = -1.5;
+      this.isDead = false;
+    }
+    update() {
+      if(this.isDead) return;
+      this.x += this.velocityX;
+      // 땅 충돌
+      if(this.x < 0 || this.x + this.width > canvas.width) {
+        this.velocityX *= -1;
+      }
+    }
+    draw() {
+      if(this.isDead) return;
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      // 눈, 입 간단 표현
+      ctx.fillStyle = 'white';
+      ctx.fillRect(this.x + 6, this.y + 6, 6, 6);
+      ctx.fillRect(this.x + 18, this.y + 6, 6, 6);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(this.x + 8, this.y + 8, 2, 2);
+      ctx.fillRect(this.x + 20, this.y + 8, 2, 2);
+      ctx.fillRect(this.x + 10, this.y + 20, 10, 3);
+    }
+  }
+
+  // 고마 생성
+  class Koopa {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.width = 30;
+      this.height = 40;
+      this.color = 'green';
+      this.velocityX = 1.2;
+      this.isDead = false;
+    }
+    update() {
+      if(this.isDead) return;
+      this.x += this.velocityX;
+      if(this.x < 0 || this.x + this.width > canvas.width) {
+        this.velocityX *= -1;
+      }
+    }
+    draw() {
+      if(this.isDead) return;
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      // 눈 간단 표현
+      ctx.fillStyle = 'white';
+      ctx.fillRect(this.x + 6, this.y + 10, 6, 6);
+      ctx.fillRect(this.x + 18, this.y + 10, 6, 6);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(this.x + 8, this.y + 12, 2, 2);
+      ctx.fillRect(this.x + 20, this.y + 12, 2, 2);
+    }
+  }
+
+  // 아이템 클래스
+  class Item {
+    constructor(x, y, type) {
+      this.x = x;
+      this.y = y;
+      this.width = 30;
+      this.height = 30;
+      this.type = type; // 'mushroom' or 'fireflower'
+      this.color = type === 'mushroom' ? 'red' : 'yellow';
+      this.velocityX = 1.5;
+      this.velocityY = 0;
+      this.isCollected = false;
+    }
+    update() {
+      if(this.isCollected) return;
+      this.x += this.velocityX;
+      this.velocityY += gravity;
+      this.y += this.velocityY;
+      if(this.y + this.height > ground.y) {
+        this.y = ground.y - this.height;
+        this.velocityY = 0;
+      }
+      // 벽에서 반사
+      if(this.x < 0 || this.x + this.width > canvas.width) {
+        this.velocityX *= -1;
+      }
+    }
+    draw() {
+      if(this.isCollected) return;
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      // 간단 아이콘 느낌
+      ctx.fillStyle = 'white';
+      if(this.type === 'mushroom') {
+        ctx.fillRect(this.x + 8, this.y + 8, 14, 14);
+      } else if(this.type === 'fireflower') {
+        ctx.fillRect(this.x + 10, this.y + 5, 10, 20);
+      }
+    }
+  }
+
+  // 키 상태 저장
+  const keys = {};
+  window.addEventListener('keydown', e => keys[e.code] = true);
+  window.addEventListener('keyup', e => keys[e.code] = false);
+
+  // 터치 버튼들
+  const btnLeft = document.getElementById('left');
+  const btnRight = document.getElementById('right');
+  const btnUp = document.getElementById('up');
+  const btnJump = document.getElementById('jump');
+  const btnRun = document.getElementById('run');
+
+  btnLeft.addEventListener('touchstart', () => keys['ArrowLeft'] = true);
+  btnLeft.addEventListener('touchend', () => keys['ArrowLeft'] = false);
+
+  btnRight.addEventListener('touchstart', () => keys['ArrowRight'] = true);
+  btnRight.addEventListener('touchend', () => keys['ArrowRight'] = false);
+
+  btnUp.addEventListener('touchstart', () => {
+    if(player.isOnGround) {
+      player.velocityY = -14;
+      player.isOnGround = false;
+    }
+  });
+
+  btnJump.addEventListener('touchstart', () => {
+    if(player.isOnGround) {
+      player.velocityY = -14;
+      player.isOnGround = false;
+    }
+  });
+
+  btnRun.addEventListener('touchstart', () => {
+    player.isRunning = true;
+  });
+  btnRun.addEventListener('touchend', () => {
+    player.isRunning = false;
+  });
+
+  // 충돌 체크 함수 (간단한 AABB)
+  function isColliding(a, b) {
+    return !(
+      a.x + a.width < b.x ||
+      a.x > b.x + b.width ||
+      a.y + a.height < b.y ||
+      a.y > b.y + b.height
+    );
+  }
+
+  // 게임 업데이트 함수
+  function update() {
+    // 플레이어 이동 속도 결정
+    let speed = player.speed;
+    if(player.isRunning) speed *= 1.7;
+
+    if(keys['ArrowLeft']) {
+      player.velocityX = -speed;
+    } else if(keys['ArrowRight']) {
+      player.velocityX = speed;
+    } else {
+      player.velocityX *= friction;
+      if(Math.abs(player.velocityX) < 0.1) player.velocityX = 0;
+    }
+
+    player.velocityY += gravity;
+
+    player.x += player.velocityX;
+    player.y += player.velocityY;
+
+    // 땅 충돌
+    if(player.y + player.height > ground.y) {
+      player.y = ground.y - player.height;
+      player.velocityY = 0;
+      player.isOnGround = true;
+    } else {
+      player.isOnGround = false;
+    }
+
+    // 블록 충돌 (아래쪽에 착지 가능)
+    if(player.x + player.width > block.x &&
+       player.x < block.x + block.width &&
+       player.y + player.height > block.y &&
+       player.y + player.height < block.y + block.height + 15 &&
+       player.velocityY >= 0) {
+      player.y = block.y - player.height;
+      player.velocityY = 0;
+      player.isOnGround = true;
+    }
+
+    // 블록 밑에서 튕기기 (아이템 나오게)
+    if(player.x + player.width > block.x &&
+       player.x < block.x + block.width &&
+       player.y < block.y + block.height &&
+       player.y > block.y - 20 &&
+       keys['ArrowUp']) { // 블록 밑에서 점프할 때
+      spawnItem();
+    }
+
+    // 아이템 업데이트 및 충돌 체크
+    items.forEach(item => {
+      item.update();
+
+      // 플레이어가 아이템 먹으면
+      if(!item.isCollected && isColliding(player, item)) {
+        item.isCollected = true;
+        if(item.type === 'mushroom') {
+          player.powerUp = 'mushroom';
+          player.height = 60;
+          player.color = 'orange';
+        } else if(item.type === 'fireflower') {
+          player.powerUp = 'fireflower';
+          player.color = 'yellow';
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+      }
+    });
 
-        let gravity = 0.5;
-        let friction = 0.9;
+    // 적들 업데이트 및 충돌 처리
+    enemies.forEach(enemy => {
+      enemy.update();
 
-        const player = {
-            x: 100,
-            y: 300,
-            width: 40,
-            height: 40,
-            color: 'red',
-            velocityX: 0,
-            velocityY: 0,
-            isOnGround: false
-        };
-
-        const ground = {
-            x: 0,
-            y: window.innerHeight - 50,
-            width: window.innerWidth,
-            height: 50,
-            color: 'green'
-        };
-
-        const block = {
-            x: window.innerWidth / 2 - 50,
-            y: window.innerHeight - 200,
-            width: 100,
-            height: 20,
-            color: 'brown'
-        };
-
-        const keys = {};
-
-        window.addEventListener('keydown', function(e) {
-            keys[e.code] = true;
-        });
-
-        window.addEventListener('keyup', function(e) {
-            keys[e.code] = false;
-        });
-
-        // 터치 버튼 핸들링
-        const btnLeft = document.getElementById('left');
-        const btnRight = document.getElementById('right');
-        const btnUp = document.getElementById('up');
-        const btnJump = document.getElementById('jump');
-
-        btnLeft.addEventListener('touchstart', () => keys['ArrowLeft'] = true);
-        btnLeft.addEventListener('touchend', () => keys['ArrowLeft'] = false);
-
-        btnRight.addEventListener('touchstart', () => keys['ArrowRight'] = true);
-        btnRight.addEventListener('touchend', () => keys['ArrowRight'] = false);
-
-        btnUp.addEventListener('touchstart', () => {
-            if (player.isOnGround) {
-                player.velocityY = -12;
-                player.isOnGround = false;
-            }
-        });
-
-        btnJump.addEventListener('touchstart', () => {
-            if (player.isOnGround) {
-                player.velocityY = -12;
-                player.isOnGround = false;
-            }
-        });
-
-        function update() {
-            if (keys['ArrowLeft']) {
-                player.velocityX = -5;
-            } else if (keys['ArrowRight']) {
-                player.velocityX = 5;
-            } else {
-                player.velocityX *= friction;
-            }
-
-            player.velocityY += gravity;
-
-            player.x += player.velocityX;
-            player.y += player.velocityY;
-
-            if (player.y + player.height > ground.y) {
-                player.y = ground.y - player.height;
-                player.velocityY = 0;
-                player.isOnGround = true;
-            } else {
-                player.isOnGround = false;
-            }
-
-            if (player.x < block.x + block.width &&
-                player.x + player.width > block.x &&
-                player.y + player.height > block.y &&
-                player.y + player.height < block.y + block.height &&
-                player.velocityY >= 0) {
-
-                player.y = block.y - player.height;
-                player.velocityY = 0;
-                player.isOnGround = true;
-            }
+      // 플레이어가 적 위로 뛰어내리면 적 죽음
+      if(isColliding(player, enemy)) {
+        if(player.velocityY > 0 && player.y + player.height - enemy.y < 15) {
+          enemy.isDead = true;
+          player.velocityY = -10; // 튕기기
+        } else {
+          // 플레이어 피격(간단하게 리셋)
+          resetPlayer();
         }
+      }
+    });
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 화면 밖으로 나가지 못하게 제한
+    if(player.x < 0) player.x = 0;
+    if(player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+  }
 
-            ctx.fillStyle = ground.color;
-            ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+  // 아이템 스폰 플래그 방지용
+  let itemSpawned = false;
+  function spawnItem() {
+    if(itemSpawned) return;
+    // 랜덤으로 버섯 혹은 파이어플라워
+    let type = Math.random() < 0.5 ? 'mushroom' : 'fireflower';
+    items.push(new Item(block.x + block.width/2 - 15, block.y - 30, type));
+    itemSpawned = true;
+  }
 
-            ctx.fillStyle = block.color;
-            ctx.fillRect(block.x, block.y, block.width, block.height);
+  // 플레이어 리셋
+  function resetPlayer() {
+    player.x = 100;
+    player.y = 300;
+    player.velocityX = 0;
+    player.velocityY = 0;
+    player.powerUp = 'small';
+    player.height = 40;
+    player.color = 'red';
+  }
 
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-        }
+  // 초기 적 생성
+  function spawnEnemies() {
+    enemies = [];
+    enemies.push(new Goomba(canvas.width/2 + 100, ground.y - 30));
+    enemies.push(new Koopa(canvas.width/2 + 200, ground.y - 40));
+  }
 
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
+  spawnEnemies();
 
-        gameLoop();
-    </script>
+  // 게임 그리기
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 배경 그라데이션 (하늘)
+    let gradient = ctx.createLinearGradient(0,0,0,canvas.height);
+    gradient.addColorStop(0, '#7ec0ee');
+    gradient.addColorStop(1, '#5c94fc');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // 땅
+    ctx.fillStyle = ground.color;
+    ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+
+    // 블록
+    ctx.fillStyle = block.color;
+    ctx.fillRect(block.x, block.y, block.width, block.height);
+
+    // 플레이어
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // 굼바, 고마 적들
+    enemies.forEach(e => e.draw());
+
+    // 아이템
+    items.forEach(i => i.draw());
+  }
+
+  // 게임 루프
+  function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+</script>
 </body>
 </html>
