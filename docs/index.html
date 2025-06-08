@@ -5,106 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>마리오</title>
+    <title>마리오 모바일</title>
     <link rel="apple-touch-icon" href="icon.png" />
     <meta name="apple-mobile-web-app-title" content="타이틀" />
+
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #5c94fc;
             margin: 0;
+            overflow: hidden;
+            background-color: #5c94fc;
+            font-family: sans-serif;
         }
 
-        .mario {
-            display: grid;
-            grid-template-columns: repeat(16, 10px);
-            grid-template-rows: repeat(16, 10px);
-            gap: 1px;
+        canvas {
+            display: block;
+            background-color: #5c94fc;
         }
 
-        .pixel {
-            width: 10px;
-            height: 10px;
-            background-color: transparent;
+        /* 모바일용 버튼 */
+        .controls {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
         }
 
-        .skin { background-color: #fcd7b6; }
-        .hat { background-color: #ff0000; }
-        .shirt { background-color: #0000ff; }
-        .pants { background-color: #0000aa; }
-        .shoes { background-color: #663300; }
-        .empty { background-color: transparent; }
+        .controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            user-select: none;
+        }
+
+        .controls button:active {
+            background: rgba(255, 255, 255, 0.9);
+        }
     </style>
 </head>
 <body>
-    <div class="mario">
-        <!-- Row by row pixel art -->
-        <!-- 1st row -->
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-        <div class="empty"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
-        <div class="hat"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
+    <canvas id="gameCanvas"></canvas>
 
-        <!-- 2nd row -->
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-        <div class="hat"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
-        <div class="skin"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 3rd row -->
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-        <div class="hat"></div><div class="skin"></div><div class="hat"></div><div class="hat"></div>
-        <div class="skin"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 4th row -->
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="hat"></div>
-        <div class="hat"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
-        <div class="hat"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 5th row -->
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="skin"></div>
-        <div class="skin"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
-        <div class="skin"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 6th row -->
-        <div class="empty"></div><div class="empty"></div><div class="shirt"></div><div class="shirt"></div>
-        <div class="shirt"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
-        <div class="shirt"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
-        <div class="shirt"></div><div class="shirt"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 7th row -->
-        <div class="empty"></div><div class="empty"></div><div class="shirt"></div><div class="pants"></div>
-        <div class="pants"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
-        <div class="shirt"></div><div class="shirt"></div><div class="pants"></div><div class="pants"></div>
-        <div class="shirt"></div><div class="shirt"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 8th row -->
-        <div class="empty"></div><div class="empty"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 9th row -->
-        <div class="empty"></div><div class="empty"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
-        <div class="pants"></div><div class="pants"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 10th row -->
-        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
-        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
-        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
-        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
-
-        <!-- 남은 row는 빈칸 -->
-        <!-- 11~16 rows -->
-        ${'<div class="empty"></div>'.repeat(16 * 6)}
+    <!-- 모바일용 터치 버튼 -->
+    <div class="controls">
+        <button id="left">⬅️</button>
+        <button id="right">➡️</button>
+        <button id="jump">⬆️</button>
     </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 화면 크기에 맞게 캔버스 설정
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 게임 변수
+        let gravity = 0.5;
+        let friction = 0.9;
+
+        // 플레이어
+        const player = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 40,
+            color: 'red',
+            velocityX: 0,
+            velocityY: 0,
+            isOnGround: false
+        };
+
+        // 땅
+        const ground = {
+            x: 0,
+            y: window.innerHeight - 50,
+            width: window.innerWidth,
+            height: 50,
+            color: 'green'
+        };
+
+        // 블록
+        const block = {
+            x: window.innerWidth / 2 - 50,
+            y: window.innerHeight - 200,
+            width: 100,
+            height: 20,
+            color: 'brown'
+        };
+
+        // 키 입력
+        const keys = {};
+
+        window.addEventListener('keydown', function(e) {
+            keys[e.code] = true;
+        });
+
+        window.addEventListener('keyup', function(e) {
+            keys[e.code] = false;
+        });
+
+        // 터치 버튼 핸들링
+        const btnLeft = document.getElementById('left');
+        const btnRight = document.getElementById('right');
+        const btnJump = document.getElementById('jump');
+
+        btnLeft.addEventListener('touchstart', () => keys['ArrowLeft'] = true);
+        btnLeft.addEventListener('touchend', () => keys['ArrowLeft'] = false);
+
+        btnRight.addEventListener('touchstart', () => keys['ArrowRight'] = true);
+        btnRight.addEventListener('touchend', () => keys['ArrowRight'] = false);
+
+        btnJump.addEventListener('touchstart', () => {
+            if (player.isOnGround) {
+                player.velocityY = -12;
+                player.isOnGround = false;
+            }
+        });
+
+        function update() {
+            // 좌우 이동
+            if (keys['ArrowLeft']) {
+                player.velocityX = -5;
+            } else if (keys['ArrowRight']) {
+                player.velocityX = 5;
+            } else {
+                player.velocityX *= friction;
+            }
+
+            // 중력 적용
+            player.velocityY += gravity;
+
+            // 위치 업데이트
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+
+            // 바닥 충돌
+            if (player.y + player.height > ground.y) {
+                player.y = ground.y - player.height;
+                player.velocityY = 0;
+                player.isOnGround = true;
+            } else {
+                player.isOnGround = false;
+            }
+
+            // 블록 충돌
+            if (player.x < block.x + block.width &&
+                player.x + player.width > block.x &&
+                player.y + player.height > block.y &&
+                player.y + player.height < block.y + block.height &&
+                player.velocityY >= 0) {
+
+                player.y = block.y - player.height;
+                player.velocityY = 0;
+                player.isOnGround = true;
+            }
+        }
+
+        function draw() {
+            // 배경 지우기
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 땅 그리기
+            ctx.fillStyle = ground.color;
+            ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+
+            // 블록 그리기
+            ctx.fillStyle = block.color;
+            ctx.fillRect(block.x, block.y, block.width, block.height);
+
+            // 플레이어 그리기
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
 </body>
 </html>
