@@ -101,14 +101,18 @@
 
         .window-body {
             padding: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            font-size: 14px;
+            color: black;
         }
 
         .window button {
             margin-top: 10px;
             padding: 5px 10px;
             font-family: Arial, sans-serif;
+            cursor: pointer;
         }
-
     </style>
 </head>
 <body>
@@ -126,10 +130,9 @@
         <div class="window">
             <div class="window-header">Windows Upgrade</div>
             <div class="window-body" id="gui-body">
-                System upgraded to Windows 95 🚀
-                <br><br>
-                <button onclick="nextUpgrade()">Upgrade to next version</button>
+                Ready to upgrade...
             </div>
+            <button id="upgrade-button" onclick="startProgress()">Start Upgrade</button>
         </div>
     </div>
 
@@ -140,9 +143,11 @@
         const header = document.getElementById('header');
         const guiWindow = document.getElementById('gui-window');
         const guiBody = document.getElementById('gui-body');
+        const upgradeBtn = document.getElementById('upgrade-button');
 
         const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
         let currentOSIndex = 0;
+        let upgrading = false;
 
         function appendMessage(content, type) {
             const msg = document.createElement('div');
@@ -153,6 +158,8 @@
         }
 
         function sendMessage() {
+            if(upgrading) return; // 업그레이드 중일 땐 입력 막음
+
             const text = chatInput.value.trim();
             if (text === '') return;
             
@@ -162,15 +169,19 @@
         }
 
         function processBotResponse(text) {
-            if (text.toLowerCase() === '/dos --u upgrade') {
-                upgradeOS();
+            if (text.toLowerCase() === '/dos -u upgrade') {
+                if(currentOSIndex >= osVersions.length - 1){
+                    appendMessage("Already at latest OS: " + osVersions[currentOSIndex], 'bot');
+                } else {
+                    upgradeOS();
+                }
                 return;
             }
 
             let response = '';
             switch (text.toLowerCase()) {
                 case 'help':
-                    response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos --u upgrade";
+                    response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos -u upgrade";
                     break;
                 case 'hello':
                     response = "Hi there! I'm DOSBot. 🤖";
@@ -190,28 +201,67 @@
 
         function upgradeOS() {
             currentOSIndex++;
-            if (currentOSIndex >= osVersions.length) {
-                appendMessage("Already at latest OS: " + osVersions[osVersions.length-1], 'bot');
-                return;
-            }
-
             const newOS = osVersions[currentOSIndex];
 
-            if (currentOSIndex === 1) {
-                // From Windows 95, switch to GUI mode
+            if(currentOSIndex === 1) {
+                // Win95 부터 GUI 모드 전환
                 document.body.classList.add('gui-mode');
-                document.getElementById('chat-window').style.display = 'none';
+                chatWindow.style.display = 'none';
                 inputArea.style.display = 'none';
                 header.textContent = '[ ' + newOS + ' ]';
                 guiWindow.style.display = 'block';
-                guiBody.innerHTML = `System upgraded to ${newOS} 🚀<br><br><button onclick="nextUpgrade()">Upgrade to next version</button>`;
-            } else if (currentOSIndex > 1) {
-                guiBody.innerHTML = `System upgraded to ${newOS} 🚀<br><br><button onclick="nextUpgrade()">Upgrade to next version</button>`;
+                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
+                upgradeBtn.style.display = 'inline-block';
+            } else if(currentOSIndex > 1) {
+                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
+                upgradeBtn.style.display = 'inline-block';
+            } else {
+                // MS-DOS 상태 (텍스트 모드)
+                appendMessage("System upgraded to " + newOS + " 🚀", 'bot');
             }
         }
 
+        function startProgress() {
+            upgrading = true;
+            upgradeBtn.style.display = 'none';
+            let progress = 0;
+            const newOS = osVersions[currentOSIndex];
+
+            guiBody.textContent = `Upgrading to ${newOS}...\n[                    ] 0%`;
+
+            const interval = setInterval(() => {
+                progress += 5;
+                const barsCount = Math.floor(progress / 5);
+                const barStr = '#'.repeat(barsCount).padEnd(20, ' ');
+                guiBody.textContent = `Upgrading to ${newOS}...\n[${barStr}] ${progress}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    guiBody.textContent = `Upgrade to ${newOS} completed! 🚀\n\nClick "Next Upgrade" to continue or close to exit.`;
+                    upgradeBtn.style.display = 'inline-block';
+                    upgradeBtn.textContent = 'Next Upgrade';
+                    upgrading = false;
+                    // 만약 최신버전이면 버튼 숨김
+                    if(currentOSIndex >= osVersions.length - 1) {
+                        upgradeBtn.style.display = 'none';
+                        guiBody.textContent = `You are running the latest OS: ${newOS} 🚀`;
+                    }
+                }
+            }, 150);
+        }
+
         function nextUpgrade() {
+            if(upgrading) return;
             upgradeOS();
+        }
+
+        upgradeBtn.onclick = function(){
+            if(upgrading) return;
+            if(upgradeBtn.textContent === 'Start Upgrade'){
+                startProgress();
+            } else {
+                nextUpgrade();
+            }
         }
 
         chatInput.addEventListener('keydown', function(e) {
