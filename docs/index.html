@@ -1,439 +1,243 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>마리오</title>
-<link rel="apple-touch-icon" href="icon.PNG" />
-<meta name="apple-mobile-web-app-title" content="마리오" />
-<style>
-  body {
-    margin:0; overflow:hidden; background:#5c94fc; font-family:'Press Start 2P', sans-serif;
-  }
-  canvas {
-    display:block; background:#5c94fc;
-  }
-  .controller {
-    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-    display:flex; flex-direction:column; align-items:center; z-index:10; gap:10px;
-  }
-  .dpad {
-    display:grid; grid-template-columns:60px 60px 60px;
-    grid-template-rows:60px 60px 60px; gap:5px;
-  }
-  .dpad button {
-    width:60px; height:60px; font-size:24px; border-radius:5px;
-    border:3px solid #333; background:#aaa;
-    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #666;
-    user-select:none;
-  }
-  .dpad button:active {
-    background:#ddd;
-    box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #666;
-  }
-  .buttons {
-    margin-top:10px; display:flex; gap:20px;
-  }
-  .buttons button {
-    width:60px; height:60px; font-size:24px; border-radius:50%;
-    border:3px solid #333; background:#e60012; color:#fff;
-    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 4px #900;
-    user-select:none;
-  }
-  .buttons button:active {
-    background:#ff4444;
-    box-shadow: inset 0 2px 2px rgba(255,255,255,0.8), 0 2px #900;
-  }
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>DOS chat</title>
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="apple-mobile-web-app-title" content="DOS" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .center-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .header {
+            background-color: #111;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #00FF00;
+        }
+
+        .chat-window {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .input-area {
+            display: flex;
+            border-top: 1px solid #00FF00;
+        }
+
+        .input-area input {
+            flex: 1;
+            background-color: black;
+            color: #00FF00;
+            border: none;
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .input-area button {
+            background-color: #111;
+            color: #00FF00;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+        }
+
+        .input-area button:hover {
+            background-color: #222;
+        }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+        .user-message::before {
+            content: "You> ";
+            color: #00FF00;
+        }
+
+        .bot-message::before {
+            content: "DOSBot> ";
+            color: #FF00FF;
+        }
+
+        .device-select button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #111;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+        }
+
+        .device-select button:hover {
+            background-color: #222;
+        }
+
+        .virtual-keyboard {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            padding: 10px;
+            border-top: 1px solid #00FF00;
+            background-color: #111;
+        }
+
+        .virtual-keyboard button {
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            background-color: black;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            cursor: pointer;
+        }
+
+        .virtual-keyboard button:hover {
+            background-color: #222;
+        }
+    </style>
 </head>
 <body>
-<canvas id="gameCanvas"></canvas>
+    <!-- 처음 디바이스 선택 화면 -->
+    <div class="center-screen" id="device-select-screen">
+        <h1>Welcome to DOS Chat</h1>
+        <p>Are you using:</p>
+        <div class="device-select">
+            <button onclick="startChat('desktop')">🖥️ Desktop</button>
+            <button onclick="startChat('mobile')">📱 Mobile</button>
+        </div>
+    </div>
 
-<div class="controller">
-  <div class="dpad">
-    <button id="empty1"></button>
-    <button id="up">⬆️</button>
-    <button id="empty2"></button>
-    <button id="left">⬅️</button>
-    <button id="empty3"></button>
-    <button id="right">➡️</button>
-    <button id="empty4"></button>
-    <button id="down">⬇️</button>
-    <button id="empty5"></button>
-  </div>
-  <div class="buttons">
-    <button id="jump">A</button>
-    <button id="run">B</button>
-  </div>
-</div>
+    <!-- 채팅 화면 -->
+    <div id="chat-screen" style="display:none; flex:1; flex-direction:column;">
+        <div class="header">[ DOS Chat ]</div>
+        <div class="chat-window" id="chat-window">
+            <div class="bot-message message">Hello! Welcome to DOS Chat. Type 'help' to get started.</div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="chat-input" placeholder="Type your message here..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <!-- 모바일용 가상 키보드 -->
+        <div class="virtual-keyboard" id="virtual-keyboard" style="display:none;"></div>
+    </div>
 
-<script>
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+        const virtualKeyboard = document.getElementById('virtual-keyboard');
 
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
+        function startChat(deviceType) {
+            document.getElementById('device-select-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
 
-  const gravity = 0.6;
-  const friction = 0.85;
-
-  // 플레이어
-  const player = {
-    x: 100,
-    y: 300,
-    width: 40,
-    height: 40,
-    color: 'red',
-    velocityX: 0,
-    velocityY: 0,
-    speed: 4,
-    isOnGround: false,
-    isRunning: false,
-    powerUp: 'small' // 'small', 'mushroom', 'fireflower'
-  };
-
-  // 땅
-  const ground = {
-    x: 0,
-    y: canvas.height - 50,
-    width: canvas.width,
-    height: 50,
-    color: 'green'
-  };
-
-  // 블록 (아이템 블록)
-  const block = {
-    x: canvas.width/2 - 50,
-    y: ground.y - 70,
-    width: 100,
-    height: 40,
-    color: '#b5651d'  // 갈색
-  };
-
-  // 아이템들
-  let items = []; // 버섯, 파이어 플라워
-
-  // 적들: 굼바, 고마
-  let enemies = [];
-
-  // 굼바 생성
-  class Goomba {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-      this.width = 30;
-      this.height = 30;
-      this.color = '#8b4513'; // 갈색
-      this.velocityX = -1.5;
-      this.isDead = false;
-    }
-    update() {
-      if(this.isDead) return;
-      this.x += this.velocityX;
-      // 땅 충돌
-      if(this.x < 0 || this.x + this.width > canvas.width) {
-        this.velocityX *= -1;
-      }
-    }
-    draw() {
-      if(this.isDead) return;
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-      // 눈, 입 간단 표현
-      ctx.fillStyle = 'white';
-      ctx.fillRect(this.x + 6, this.y + 6, 6, 6);
-      ctx.fillRect(this.x + 18, this.y + 6, 6, 6);
-      ctx.fillStyle = 'black';
-      ctx.fillRect(this.x + 8, this.y + 8, 2, 2);
-      ctx.fillRect(this.x + 20, this.y + 8, 2, 2);
-      ctx.fillRect(this.x + 10, this.y + 20, 10, 3);
-    }
-  }
-
-  // 고마 생성
-  class Koopa {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-      this.width = 30;
-      this.height = 40;
-      this.color = 'green';
-      this.velocityX = 1.2;
-      this.isDead = false;
-    }
-    update() {
-      if(this.isDead) return;
-      this.x += this.velocityX;
-      if(this.x < 0 || this.x + this.width > canvas.width) {
-        this.velocityX *= -1;
-      }
-    }
-    draw() {
-      if(this.isDead) return;
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-      // 눈 간단 표현
-      ctx.fillStyle = 'white';
-      ctx.fillRect(this.x + 6, this.y + 10, 6, 6);
-      ctx.fillRect(this.x + 18, this.y + 10, 6, 6);
-      ctx.fillStyle = 'black';
-      ctx.fillRect(this.x + 8, this.y + 12, 2, 2);
-      ctx.fillRect(this.x + 20, this.y + 12, 2, 2);
-    }
-  }
-
-  // 아이템 클래스
-  class Item {
-    constructor(x, y, type) {
-      this.x = x;
-      this.y = y;
-      this.width = 30;
-      this.height = 30;
-      this.type = type; // 'mushroom' or 'fireflower'
-      this.color = type === 'mushroom' ? 'red' : 'yellow';
-      this.velocityX = 1.5;
-      this.velocityY = 0;
-      this.isCollected = false;
-    }
-    update() {
-      if(this.isCollected) return;
-      this.x += this.velocityX;
-      this.velocityY += gravity;
-      this.y += this.velocityY;
-      if(this.y + this.height > ground.y) {
-        this.y = ground.y - this.height;
-        this.velocityY = 0;
-      }
-      // 벽에서 반사
-      if(this.x < 0 || this.x + this.width > canvas.width) {
-        this.velocityX *= -1;
-      }
-    }
-    draw() {
-      if(this.isCollected) return;
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-      // 간단 아이콘 느낌
-      ctx.fillStyle = 'white';
-      if(this.type === 'mushroom') {
-        ctx.fillRect(this.x + 8, this.y + 8, 14, 14);
-      } else if(this.type === 'fireflower') {
-        ctx.fillRect(this.x + 10, this.y + 5, 10, 20);
-      }
-    }
-  }
-
-  // 키 상태 저장
-  const keys = {};
-  window.addEventListener('keydown', e => keys[e.code] = true);
-  window.addEventListener('keyup', e => keys[e.code] = false);
-
-  // 터치 버튼들
-  const btnLeft = document.getElementById('left');
-  const btnRight = document.getElementById('right');
-  const btnUp = document.getElementById('up');
-  const btnJump = document.getElementById('jump');
-  const btnRun = document.getElementById('run');
-
-  btnLeft.addEventListener('touchstart', () => keys['ArrowLeft'] = true);
-  btnLeft.addEventListener('touchend', () => keys['ArrowLeft'] = false);
-
-  btnRight.addEventListener('touchstart', () => keys['ArrowRight'] = true);
-  btnRight.addEventListener('touchend', () => keys['ArrowRight'] = false);
-
-  btnUp.addEventListener('touchstart', () => {
-    if(player.isOnGround) {
-      player.velocityY = -14;
-      player.isOnGround = false;
-    }
-  });
-
-  btnJump.addEventListener('touchstart', () => {
-    if(player.isOnGround) {
-      player.velocityY = -14;
-      player.isOnGround = false;
-    }
-  });
-
-  btnRun.addEventListener('touchstart', () => {
-    player.isRunning = true;
-  });
-  btnRun.addEventListener('touchend', () => {
-    player.isRunning = false;
-  });
-
-  // 충돌 체크 함수 (간단한 AABB)
-  function isColliding(a, b) {
-    return !(
-      a.x + a.width < b.x ||
-      a.x > b.x + b.width ||
-      a.y + a.height < b.y ||
-      a.y > b.y + b.height
-    );
-  }
-
-  // 게임 업데이트 함수
-  function update() {
-    // 플레이어 이동 속도 결정
-    let speed = player.speed;
-    if(player.isRunning) speed *= 1.7;
-
-    if(keys['ArrowLeft']) {
-      player.velocityX = -speed;
-    } else if(keys['ArrowRight']) {
-      player.velocityX = speed;
-    } else {
-      player.velocityX *= friction;
-      if(Math.abs(player.velocityX) < 0.1) player.velocityX = 0;
-    }
-
-    player.velocityY += gravity;
-
-    player.x += player.velocityX;
-    player.y += player.velocityY;
-
-    // 땅 충돌
-    if(player.y + player.height > ground.y) {
-      player.y = ground.y - player.height;
-      player.velocityY = 0;
-      player.isOnGround = true;
-    } else {
-      player.isOnGround = false;
-    }
-
-    // 블록 충돌 (아래쪽에 착지 가능)
-    if(player.x + player.width > block.x &&
-       player.x < block.x + block.width &&
-       player.y + player.height > block.y &&
-       player.y + player.height < block.y + block.height + 15 &&
-       player.velocityY >= 0) {
-      player.y = block.y - player.height;
-      player.velocityY = 0;
-      player.isOnGround = true;
-    }
-
-    // 블록 밑에서 튕기기 (아이템 나오게)
-    if(player.x + player.width > block.x &&
-       player.x < block.x + block.width &&
-       player.y < block.y + block.height &&
-       player.y > block.y - 20 &&
-       keys['ArrowUp']) { // 블록 밑에서 점프할 때
-      spawnItem();
-    }
-
-    // 아이템 업데이트 및 충돌 체크
-    items.forEach(item => {
-      item.update();
-
-      // 플레이어가 아이템 먹으면
-      if(!item.isCollected && isColliding(player, item)) {
-        item.isCollected = true;
-        if(item.type === 'mushroom') {
-          player.powerUp = 'mushroom';
-          player.height = 60;
-          player.color = 'orange';
-        } else if(item.type === 'fireflower') {
-          player.powerUp = 'fireflower';
-          player.color = 'yellow';
+            if (deviceType === 'mobile') {
+                showVirtualKeyboard();
+            }
         }
-      }
-    });
 
-    // 적들 업데이트 및 충돌 처리
-    enemies.forEach(enemy => {
-      enemy.update();
-
-      // 플레이어가 적 위로 뛰어내리면 적 죽음
-      if(isColliding(player, enemy)) {
-        if(player.velocityY > 0 && player.y + player.height - enemy.y < 15) {
-          enemy.isDead = true;
-          player.velocityY = -10; // 튕기기
-        } else {
-          // 플레이어 피격(간단하게 리셋)
-          resetPlayer();
+        function appendMessage(content, type) {
+            const msg = document.createElement('div');
+            msg.classList.add(type + '-message', 'message');
+            msg.textContent = content;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-      }
-    });
 
-    // 화면 밖으로 나가지 못하게 제한
-    if(player.x < 0) player.x = 0;
-    if(player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-  }
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+            
+            appendMessage(text, 'user');
+            chatInput.value = '';
+            processBotResponse(text);
+        }
 
-  // 아이템 스폰 플래그 방지용
-  let itemSpawned = false;
-  function spawnItem() {
-    if(itemSpawned) return;
-    // 랜덤으로 버섯 혹은 파이어플라워
-    let type = Math.random() < 0.5 ? 'mushroom' : 'fireflower';
-    items.push(new Item(block.x + block.width/2 - 15, block.y - 30, type));
-    itemSpawned = true;
-  }
+        function processBotResponse(text) {
+            let response = '';
+            switch (text.toLowerCase()) {
+                case 'help':
+                    response = "Available commands:\n- help\n- hello\n- time\n- clear";
+                    break;
+                case 'hello':
+                    response = "Hi there! I'm DOSBot. 🤖";
+                    break;
+                case 'time':
+                    response = "Current time is: " + new Date().toLocaleTimeString();
+                    break;
+                case 'clear':
+                    chatWindow.innerHTML = '';
+                    return;
+                default:
+                    response = "Unknown command. Type 'help' for list of commands.";
+            }
 
-  // 플레이어 리셋
-  function resetPlayer() {
-    player.x = 100;
-    player.y = 300;
-    player.velocityX = 0;
-    player.velocityY = 0;
-    player.powerUp = 'small';
-    player.height = 40;
-    player.color = 'red';
-  }
+            setTimeout(() => appendMessage(response, 'bot'), 500);
+        }
 
-  // 초기 적 생성
-  function spawnEnemies() {
-    enemies = [];
-    enemies.push(new Goomba(canvas.width/2 + 100, ground.y - 30));
-    enemies.push(new Koopa(canvas.width/2 + 200, ground.y - 40));
-  }
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
 
-  spawnEnemies();
+        function showVirtualKeyboard() {
+            const keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+            keys.push('SPACE', 'BACK', 'ENTER');
 
-  // 게임 그리기
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+            keys.forEach(key => {
+                const btn = document.createElement('button');
+                btn.textContent = key === 'SPACE' ? '[SPACE]' : key;
+                btn.onclick = () => handleVirtualKey(key);
+                virtualKeyboard.appendChild(btn);
+            });
 
-    // 배경 그라데이션 (하늘)
-    let gradient = ctx.createLinearGradient(0,0,0,canvas.height);
-    gradient.addColorStop(0, '#7ec0ee');
-    gradient.addColorStop(1, '#5c94fc');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+            virtualKeyboard.style.display = 'grid';
+        }
 
-    // 땅
-    ctx.fillStyle = ground.color;
-    ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
-
-    // 블록
-    ctx.fillStyle = block.color;
-    ctx.fillRect(block.x, block.y, block.width, block.height);
-
-    // 플레이어
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // 굼바, 고마 적들
-    enemies.forEach(e => e.draw());
-
-    // 아이템
-    items.forEach(i => i.draw());
-  }
-
-  // 게임 루프
-  function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-  }
-
-  gameLoop();
-</script>
+        function handleVirtualKey(key) {
+            if (key === 'SPACE') {
+                chatInput.value += ' ';
+            } else if (key === 'BACK') {
+                chatInput.value = chatInput.value.slice(0, -1);
+            } else if (key === 'ENTER') {
+                sendMessage();
+            } else {
+                chatInput.value += key;
+            }
+            chatInput.focus();
+        }
+    </script>
 </body>
 </html>
