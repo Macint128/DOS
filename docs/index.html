@@ -10,83 +10,101 @@
     <meta name="apple-mobile-web-app-title" content="타이틀" />
     <style>
         body {
-            margin: 0;
-            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             background-color: #5c94fc;
-        }
-
-        .ground {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100px;
-            background-color: #4CAF50;
+            margin: 0;
         }
 
         .mario {
-            position: absolute;
-            bottom: 100px;
-            left: 50px;
-            width: 50px;
-            height: 50px;
-            background-color: red;
-            border: 5px solid #fff;
-            border-radius: 10px;
-            box-shadow: inset 0 -5px 0 #c00;
-            animation: run 1s infinite steps(2);
+            display: grid;
+            grid-template-columns: repeat(16, 10px);
+            grid-template-rows: repeat(16, 10px);
+            gap: 1px;
         }
 
-        @keyframes run {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(10px); }
+        .pixel {
+            width: 10px;
+            height: 10px;
+            background-color: transparent;
         }
 
-        .jump {
-            animation: jump 0.5s ease-out;
-        }
-
-        @keyframes jump {
-            0%   { bottom: 100px; }
-            50%  { bottom: 200px; }
-            100% { bottom: 100px; }
-        }
+        .skin { background-color: #fcd7b6; }
+        .hat { background-color: #ff0000; }
+        .shirt { background-color: #0000ff; }
+        .pants { background-color: #0000aa; }
+        .shoes { background-color: #663300; }
+        .empty { background-color: transparent; }
     </style>
 </head>
 <body>
-    <div class="ground"></div>
-    <div class="mario" id="mario"></div>
+    <div class="mario">
+        <!-- Row by row pixel art -->
+        <!-- 1st row -->
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
+        <div class="empty"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
+        <div class="hat"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
 
-    <script>
-        const mario = document.getElementById('mario');
+        <!-- 2nd row -->
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
+        <div class="hat"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
+        <div class="skin"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
 
-        // 키보드 스페이스바로 점프
-        document.addEventListener('keydown', function(event) {
-            if (event.code === 'Space') {
-                jump();
-            }
-        });
+        <!-- 3rd row -->
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
+        <div class="hat"></div><div class="skin"></div><div class="hat"></div><div class="hat"></div>
+        <div class="skin"></div><div class="hat"></div><div class="empty"></div><div class="empty"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
 
-        function jump() {
-            if (!mario.classList.contains('jump')) {
-                mario.classList.add('jump');
-                setTimeout(() => {
-                    mario.classList.remove('jump');
-                }, 500);
-            }
-        }
+        <!-- 4th row -->
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="hat"></div>
+        <div class="hat"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
+        <div class="hat"></div><div class="hat"></div><div class="hat"></div><div class="hat"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
 
-        // 자동 이동 (우측으로)
-        let position = 50;
-        function moveMario() {
-            position += 2;
-            if (position > window.innerWidth) {
-                position = -50;
-            }
-            mario.style.left = position + 'px';
-            requestAnimationFrame(moveMario);
-        }
+        <!-- 5th row -->
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="skin"></div>
+        <div class="skin"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
+        <div class="skin"></div><div class="skin"></div><div class="skin"></div><div class="skin"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
 
-        moveMario();
-    </script>
+        <!-- 6th row -->
+        <div class="empty"></div><div class="empty"></div><div class="shirt"></div><div class="shirt"></div>
+        <div class="shirt"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
+        <div class="shirt"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
+        <div class="shirt"></div><div class="shirt"></div><div class="empty"></div><div class="empty"></div>
+
+        <!-- 7th row -->
+        <div class="empty"></div><div class="empty"></div><div class="shirt"></div><div class="pants"></div>
+        <div class="pants"></div><div class="shirt"></div><div class="shirt"></div><div class="shirt"></div>
+        <div class="shirt"></div><div class="shirt"></div><div class="pants"></div><div class="pants"></div>
+        <div class="shirt"></div><div class="shirt"></div><div class="empty"></div><div class="empty"></div>
+
+        <!-- 8th row -->
+        <div class="empty"></div><div class="empty"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="empty"></div><div class="empty"></div>
+
+        <!-- 9th row -->
+        <div class="empty"></div><div class="empty"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="pants"></div><div class="pants"></div>
+        <div class="pants"></div><div class="pants"></div><div class="empty"></div><div class="empty"></div>
+
+        <!-- 10th row -->
+        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
+        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
+        <div class="empty"></div><div class="empty"></div><div class="shoes"></div><div class="shoes"></div>
+        <div class="empty"></div><div class="empty"></div><div class="empty"></div><div class="empty"></div>
+
+        <!-- 남은 row는 빈칸 -->
+        <!-- 11~16 rows -->
+        ${'<div class="empty"></div>'.repeat(16 * 6)}
+    </div>
 </body>
 </html>
