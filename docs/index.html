@@ -84,7 +84,7 @@
 
         /* GUI 스타일 */
         .gui-mode {
-            background-color: #008080; /* Win95 기본 배경 느낌 */
+            background-color: #008080;
             color: black;
             font-family: Arial, sans-serif;
         }
@@ -152,6 +152,65 @@
         .taskbar-clock {
             margin-left: auto;
         }
+
+        /* Start Menu */
+        .start-menu {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            width: 150px;
+            background-color: #C0C0C0;
+            border: 2px outset #fff;
+            display: none;
+            flex-direction: column;
+            z-index: 1100;
+        }
+
+        .start-menu button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #C0C0C0;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .start-menu button:hover {
+            background-color: #A0A0A0;
+        }
+
+        /* Floating Windows */
+        .floating-window {
+            position: absolute;
+            top: 100px;
+            left: 100px;
+            width: 300px;
+            border: 2px solid #000;
+            background-color: #C0C0C0;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+            z-index: 1200;
+        }
+
+        .floating-window-header {
+            background-color: #000080;
+            color: white;
+            padding: 5px;
+            font-weight: bold;
+        }
+
+        .floating-window-body {
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: black;
+        }
+
+        .floating-window button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +223,7 @@
         <button onclick="sendMessage()">Send</button>
     </div>
 
-    <!-- GUI 영역 숨김 -->
+    <!-- GUI 영역 -->
     <div id="gui-window" style="display:none;">
         <div class="window">
             <div class="window-header">Windows Upgrade</div>
@@ -181,6 +240,37 @@
         <div class="taskbar-clock" id="taskbar-clock">00:00</div>
     </div>
 
+    <!-- Start Menu -->
+    <div class="start-menu" id="start-menu">
+        <button onclick="openSettings()">Settings</button>
+        <button onclick="openFileExplorer()">File Explorer</button>
+    </div>
+
+    <!-- Settings Window -->
+    <div class="floating-window" id="settings-window" style="display:none;">
+        <div class="floating-window-header">Settings</div>
+        <div class="floating-window-body">
+            <p>OS Settings</p>
+            <button onclick="manualUpgrade()">Update OS</button>
+            <button onclick="closeSettings()">Close</button>
+        </div>
+    </div>
+
+    <!-- File Explorer Window -->
+    <div class="floating-window" id="explorer-window" style="display:none;">
+        <div class="floating-window-header">File Explorer</div>
+        <div class="floating-window-body">
+            <p>[C:] Drive</p>
+            <ul>
+                <li>Program Files</li>
+                <li>Users</li>
+                <li>Windows</li>
+                <li>Documents</li>
+            </ul>
+            <button onclick="closeExplorer()">Close</button>
+        </div>
+    </div>
+
     <script>
         const chatWindow = document.getElementById('chat-window');
         const chatInput = document.getElementById('chat-input');
@@ -190,6 +280,7 @@
         const guiBody = document.getElementById('gui-body');
         const upgradeBtn = document.getElementById('upgrade-button');
         const taskbar = document.getElementById('taskbar');
+        const startMenu = document.getElementById('start-menu');
 
         const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
         let currentOSIndex = 0;
@@ -204,11 +295,9 @@
         }
 
         function sendMessage() {
-            if(upgrading) return; // 업그레이드 중일 땐 입력 막음
-
+            if(upgrading) return;
             const text = chatInput.value.trim();
             if (text === '') return;
-            
             appendMessage(text, 'user');
             chatInput.value = '';
             processBotResponse(text);
@@ -250,13 +339,12 @@
             const newOS = osVersions[currentOSIndex];
 
             if(currentOSIndex === 1) {
-                // Win95 부터 GUI 모드 전환
                 document.body.classList.add('gui-mode');
                 chatWindow.style.display = 'none';
                 inputArea.style.display = 'none';
                 header.textContent = '[ ' + newOS + ' ]';
                 guiWindow.style.display = 'block';
-                taskbar.style.display = 'flex'; // 작업표시줄 표시
+                taskbar.style.display = 'flex';
                 guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
                 upgradeBtn.style.display = 'inline-block';
             } else if(currentOSIndex > 1) {
@@ -295,17 +383,12 @@
             }, 150);
         }
 
-        function nextUpgrade() {
-            if(upgrading) return;
-            upgradeOS();
-        }
-
         upgradeBtn.onclick = function(){
             if(upgrading) return;
             if(upgradeBtn.textContent === 'Start Upgrade'){
                 startProgress();
             } else {
-                nextUpgrade();
+                upgradeOS();
             }
         }
 
@@ -325,6 +408,41 @@
 
         setInterval(updateClock, 1000);
         updateClock();
+
+        document.querySelector('.start-button').addEventListener('click', () => {
+            if (startMenu.style.display === 'flex') {
+                startMenu.style.display = 'none';
+            } else {
+                startMenu.style.display = 'flex';
+            }
+        });
+
+        function openSettings() {
+            startMenu.style.display = 'none';
+            document.getElementById('settings-window').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-window').style.display = 'none';
+        }
+
+        function manualUpgrade() {
+            closeSettings();
+            if (currentOSIndex >= osVersions.length - 1) {
+                guiBody.textContent = `Already running the latest OS: ${osVersions[currentOSIndex]} 🚀`;
+            } else {
+                upgradeOS();
+            }
+        }
+
+        function openFileExplorer() {
+            startMenu.style.display = 'none';
+            document.getElementById('explorer-window').style.display = 'block';
+        }
+
+        function closeExplorer() {
+            document.getElementById('explorer-window').style.display = 'none';
+        }
     </script>
 </body>
 </html>
