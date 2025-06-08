@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>DOS chat</title>
-    <link rel="apple-touch-icon" href="icon.png" />
-    <meta name="apple-mobile-web-app-title" content="DOS" />
     <style>
         body {
             margin: 0;
@@ -19,6 +15,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            transition: background-color 1s, color 1s, font-family 1s;
         }
 
         .header {
@@ -80,43 +77,69 @@
             color: #FF00FF;
         }
 
-        .fade-out {
-            animation: fadeOut 1s forwards;
+        /* GUI 스타일 */
+        .gui-mode {
+            background-color: #008080; /* Win95 기본 배경 느낌 */
+            color: black;
+            font-family: Arial, sans-serif;
         }
 
-        .fade-in {
-            animation: fadeIn 1s forwards;
+        .window {
+            width: 300px;
+            border: 2px solid #000;
+            background-color: #C0C0C0;
+            margin: 50px auto;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
         }
 
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-            }
+        .window-header {
+            background-color: #000080;
+            color: white;
+            padding: 5px;
+            font-weight: bold;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+        .window-body {
+            padding: 10px;
         }
+
+        .window button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            font-family: Arial, sans-serif;
+        }
+
     </style>
 </head>
 <body>
-    <div class="header">[ DOS Chat ]</div>
+    <div class="header" id="header">[ DOS Chat ]</div>
     <div class="chat-window" id="chat-window">
         <div class="bot-message message">Hello! Welcome to DOS Chat. Type 'help' to get started.</div>
     </div>
-    <div class="input-area">
+    <div class="input-area" id="input-area">
         <input type="text" id="chat-input" placeholder="Type your message here..." />
         <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- GUI 영역 숨김 -->
+    <div id="gui-window" style="display:none;">
+        <div class="window">
+            <div class="window-header">Windows Upgrade</div>
+            <div class="window-body" id="gui-body">
+                System upgraded to Windows 95 🚀
+                <br><br>
+                <button onclick="nextUpgrade()">Upgrade to next version</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const chatWindow = document.getElementById('chat-window');
         const chatInput = document.getElementById('chat-input');
+        const inputArea = document.getElementById('input-area');
+        const header = document.getElementById('header');
+        const guiWindow = document.getElementById('gui-window');
+        const guiBody = document.getElementById('gui-body');
 
         const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
         let currentOSIndex = 0;
@@ -139,12 +162,12 @@
         }
 
         function processBotResponse(text) {
-            let response = '';
             if (text.toLowerCase() === '/dos --u upgrade') {
                 upgradeOS();
                 return;
             }
 
+            let response = '';
             switch (text.toLowerCase()) {
                 case 'help':
                     response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos --u upgrade";
@@ -166,27 +189,29 @@
         }
 
         function upgradeOS() {
-            if (currentOSIndex >= osVersions.length - 1) {
-                appendMessage("You are already running the latest OS: " + osVersions[currentOSIndex], 'bot');
+            currentOSIndex++;
+            if (currentOSIndex >= osVersions.length) {
+                appendMessage("Already at latest OS: " + osVersions[osVersions.length-1], 'bot');
                 return;
             }
 
-            currentOSIndex++;
             const newOS = osVersions[currentOSIndex];
 
-            // Fade out and fade in effect (fake reboot 🤭)
-            document.body.classList.add('fade-out');
+            if (currentOSIndex === 1) {
+                // From Windows 95, switch to GUI mode
+                document.body.classList.add('gui-mode');
+                document.getElementById('chat-window').style.display = 'none';
+                inputArea.style.display = 'none';
+                header.textContent = '[ ' + newOS + ' ]';
+                guiWindow.style.display = 'block';
+                guiBody.innerHTML = `System upgraded to ${newOS} 🚀<br><br><button onclick="nextUpgrade()">Upgrade to next version</button>`;
+            } else if (currentOSIndex > 1) {
+                guiBody.innerHTML = `System upgraded to ${newOS} 🚀<br><br><button onclick="nextUpgrade()">Upgrade to next version</button>`;
+            }
+        }
 
-            setTimeout(() => {
-                chatWindow.innerHTML = '';
-                appendMessage("System upgraded to " + newOS + " 🚀", 'bot');
-                document.body.classList.remove('fade-out');
-                document.body.classList.add('fade-in');
-
-                setTimeout(() => {
-                    document.body.classList.remove('fade-in');
-                }, 1000);
-            }, 1000);
+        function nextUpgrade() {
+            upgradeOS();
         }
 
         chatInput.addEventListener('keydown', function(e) {
