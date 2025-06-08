@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>마리오</title>
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="apple-mobile-web-app-title" content="타이틀" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #5c94fc;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #4CAF50;
+        }
+
+        .mario {
+            position: absolute;
+            bottom: 100px;
+            left: 50px;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: inset 0 -5px 0 #c00;
+            animation: run 1s infinite steps(2);
+        }
+
+        @keyframes run {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(10px); }
+        }
+
+        .jump {
+            animation: jump 0.5s ease-out;
+        }
+
+        @keyframes jump {
+            0%   { bottom: 100px; }
+            50%  { bottom: 200px; }
+            100% { bottom: 100px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ground"></div>
+    <div class="mario" id="mario"></div>
+
+    <script>
+        const mario = document.getElementById('mario');
+
+        // 키보드 스페이스바로 점프
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                jump();
+            }
+        });
+
+        function jump() {
+            if (!mario.classList.contains('jump')) {
+                mario.classList.add('jump');
+                setTimeout(() => {
+                    mario.classList.remove('jump');
+                }, 500);
+            }
+        }
+
+        // 자동 이동 (우측으로)
+        let position = 50;
+        function moveMario() {
+            position += 2;
+            if (position > window.innerWidth) {
+                position = -50;
+            }
+            mario.style.left = position + 'px';
+            requestAnimationFrame(moveMario);
+        }
+
+        moveMario();
+    </script>
+</body>
+</html>
