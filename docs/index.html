@@ -21,6 +21,7 @@
             flex-direction: column;
             height: 100vh;
             transition: background-color 1s, color 1s, font-family 1s;
+            overflow: hidden;
         }
 
         .header {
@@ -28,6 +29,7 @@
             padding: 10px;
             text-align: center;
             border-bottom: 1px solid #00FF00;
+            user-select: none;
         }
 
         .chat-window {
@@ -36,6 +38,7 @@
             overflow-y: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
+            user-select: text;
         }
 
         .input-area {
@@ -95,6 +98,8 @@
             background-color: #C0C0C0;
             margin: 50px auto;
             box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+            position: relative;
+            user-select: none;
         }
 
         .window-header {
@@ -102,6 +107,8 @@
             color: white;
             padding: 5px;
             font-weight: bold;
+            cursor: move;
+            user-select: none;
         }
 
         .window-body {
@@ -110,6 +117,7 @@
             white-space: pre;
             font-size: 14px;
             color: black;
+            user-select: text;
         }
 
         .window button {
@@ -117,6 +125,7 @@
             padding: 5px 10px;
             font-family: Arial, sans-serif;
             cursor: pointer;
+            user-select: none;
         }
 
         /* 작업표시줄 */
@@ -135,6 +144,7 @@
             font-size: 14px;
             color: black;
             z-index: 1000;
+            user-select: none;
         }
 
         .start-button {
@@ -143,6 +153,7 @@
             padding: 2px 10px;
             margin-right: 10px;
             cursor: pointer;
+            user-select: none;
         }
 
         .start-button:hover {
@@ -164,6 +175,7 @@
             display: none;
             flex-direction: column;
             z-index: 1100;
+            user-select: none;
         }
 
         .start-menu button {
@@ -188,6 +200,7 @@
             background-color: #C0C0C0;
             box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
             z-index: 1200;
+            user-select: none;
         }
 
         .floating-window-header {
@@ -195,6 +208,8 @@
             color: white;
             padding: 5px;
             font-weight: bold;
+            cursor: move;
+            user-select: none;
         }
 
         .floating-window-body {
@@ -203,6 +218,7 @@
             white-space: pre-wrap;
             font-size: 14px;
             color: black;
+            user-select: text;
         }
 
         .floating-window button {
@@ -210,6 +226,54 @@
             padding: 5px 10px;
             font-family: Arial, sans-serif;
             cursor: pointer;
+            user-select: none;
+        }
+
+        /* File Explorer Tree */
+        .folder {
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .folder::before {
+            content: "▶ ";
+            display: inline-block;
+            transform-origin: center;
+            transition: transform 0.2s ease;
+        }
+
+        .folder.open::before {
+            transform: rotate(90deg);
+        }
+
+        .file-list {
+            margin-left: 20px;
+            display: none;
+            user-select: text;
+        }
+
+        .file-list.open {
+            display: block;
+        }
+
+        /* Shutdown overlay */
+        #shutdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 2s ease;
+            z-index: 2000;
+        }
+        #shutdown-overlay.active {
+            opacity: 1;
+            pointer-events: all;
         }
     </style>
 </head>
@@ -244,6 +308,7 @@
     <div class="start-menu" id="start-menu">
         <button onclick="openSettings()">Settings</button>
         <button onclick="openFileExplorer()">File Explorer</button>
+        <button onclick="shutdown()">Shutdown</button>
     </div>
 
     <!-- Settings Window -->
@@ -259,17 +324,37 @@
     <!-- File Explorer Window -->
     <div class="floating-window" id="explorer-window" style="display:none;">
         <div class="floating-window-header">File Explorer</div>
-        <div class="floating-window-body">
-            <p>[C:] Drive</p>
-            <ul>
-                <li>Program Files</li>
-                <li>Users</li>
-                <li>Windows</li>
-                <li>Documents</li>
-            </ul>
+        <div class="floating-window-body" id="explorer-body">
+            <div class="folder">Program Files
+                <div class="file-list">
+                    <div>App1.exe</div>
+                    <div>App2.exe</div>
+                </div>
+            </div>
+            <div class="folder">Users
+                <div class="file-list">
+                    <div>Junho</div>
+                    <div>Guest</div>
+                </div>
+            </div>
+            <div class="folder">Windows
+                <div class="file-list">
+                    <div>System32</div>
+                    <div>Explorer.exe</div>
+                </div>
+            </div>
+            <div class="folder">Documents
+                <div class="file-list">
+                    <div>Readme.txt</div>
+                    <div>Notes.doc</div>
+                </div>
+            </div>
             <button onclick="closeExplorer()">Close</button>
         </div>
     </div>
+
+    <!-- Shutdown overlay -->
+    <div id="shutdown-overlay"></div>
 
     <script>
         const chatWindow = document.getElementById('chat-window');
@@ -281,11 +366,15 @@
         const upgradeBtn = document.getElementById('upgrade-button');
         const taskbar = document.getElementById('taskbar');
         const startMenu = document.getElementById('start-menu');
+        const settingsWindow = document.getElementById('settings-window');
+        const explorerWindow = document.getElementById('explorer-window');
+        const shutdownOverlay = document.getElementById('shutdown-overlay');
 
         const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
         let currentOSIndex = 0;
         let upgrading = false;
 
+        // --- 메시지 출력 ---
         function appendMessage(content, type) {
             const msg = document.createElement('div');
             msg.classList.add(type + '-message', 'message');
@@ -294,6 +383,7 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
+        // --- 메시지 전송 ---
         function sendMessage() {
             if(upgrading) return;
             const text = chatInput.value.trim();
@@ -303,113 +393,58 @@
             processBotResponse(text);
         }
 
+        // --- 봇 응답 처리 ---
         function processBotResponse(text) {
-            if (text.toLowerCase() === '/dos -u upgrade') {
-                if(currentOSIndex >= osVersions.length - 1){
-                    appendMessage("Already at latest OS: " + osVersions[currentOSIndex], 'bot');
-                } else {
-                    upgradeOS();
-                }
-                return;
-            }
+            // 간단 명령어 처리
+            const lower = text.toLowerCase();
 
-            let response = '';
-            switch (text.toLowerCase()) {
-                case 'help':
-                    response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos -u upgrade";
-                    break;
-                case 'hello':
-                    response = "Hi there! I'm DOSBot. 🤖";
-                    break;
-                case 'time':
-                    response = "Current time is: " + new Date().toLocaleTimeString();
-                    break;
-                case 'clear':
-                    chatWindow.innerHTML = '';
-                    return;
-                default:
-                    response = "Unknown command. Type 'help' for list of commands.";
-            }
-
-            setTimeout(() => appendMessage(response, 'bot'), 500);
-        }
-
-        function upgradeOS() {
-            currentOSIndex++;
-            const newOS = osVersions[currentOSIndex];
-
-            if(currentOSIndex === 1) {
-                document.body.classList.add('gui-mode');
-                chatWindow.style.display = 'none';
-                inputArea.style.display = 'none';
-                header.textContent = '[ ' + newOS + ' ]';
-                guiWindow.style.display = 'block';
-                taskbar.style.display = 'flex';
-                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
-                upgradeBtn.style.display = 'inline-block';
-            } else if(currentOSIndex > 1) {
-                guiBody.textContent = `Ready to upgrade to ${newOS}...\nClick "Start Upgrade"`;
-                upgradeBtn.style.display = 'inline-block';
+            if (lower === 'help') {
+                appendMessage("Commands:\n- gui : GUI 모드 실행\n- upgrade : OS 업그레이드 시작\n- shutdown : 종료", 'bot');
+            } else if (lower === 'gui') {
+                enterGUIMode();
+            } else if (lower === 'upgrade') {
+                startProgress();
+            } else if (lower === 'shutdown') {
+                shutdown();
             } else {
-                appendMessage("System upgraded to " + newOS + " 🚀", 'bot');
+                appendMessage("명령어를 모르겠어요! 'help'를 입력해보세요.", 'bot');
             }
         }
 
-        function startProgress() {
-            upgrading = true;
-            upgradeBtn.style.display = 'none';
-            let progress = 0;
-            const newOS = osVersions[currentOSIndex];
+        // --- GUI 모드로 전환 ---
+        function enterGUIMode() {
+            document.body.classList.add('gui-mode');
+            header.style.display = 'none';
+            chatWindow.style.display = 'none';
+            inputArea.style.display = 'none';
+            guiWindow.style.display = 'block';
+            taskbar.style.display = 'flex';
+        }
 
-            guiBody.textContent = `Upgrading to ${newOS}...\n[                    ] 0%`;
+        // --- 업그레이드 진행 ---
+        function startProgress() {
+            if(upgrading) return;
+            upgrading = true;
+            upgradeBtn.disabled = true;
+            let progress = 0;
+            guiBody.textContent = '업그레이드 진행 중: 0%';
 
             const interval = setInterval(() => {
                 progress += 5;
-                const barsCount = Math.floor(progress / 5);
-                const barStr = '#'.repeat(barsCount).padEnd(20, ' ');
-                guiBody.textContent = `Upgrading to ${newOS}...\n[${barStr}] ${progress}%`;
-
-                if (progress >= 100) {
+                guiBody.textContent = `업그레이드 진행 중: ${progress}%`;
+                if(progress >= 100) {
                     clearInterval(interval);
-                    guiBody.textContent = `Upgrade to ${newOS} completed! 🚀\n\nClick "Next Upgrade" to continue or close to exit.`;
-                    upgradeBtn.style.display = 'inline-block';
-                    upgradeBtn.textContent = 'Next Upgrade';
                     upgrading = false;
-                    if(currentOSIndex >= osVersions.length - 1) {
-                        upgradeBtn.style.display = 'none';
-                        guiBody.textContent = `You are running the latest OS: ${newOS} 🚀`;
-                    }
+                    upgradeBtn.disabled = false;
+                    currentOSIndex = (currentOSIndex + 1) % osVersions.length;
+                    guiBody.textContent = `업그레이드 완료! 현재 OS: ${osVersions[currentOSIndex]}`;
                 }
-            }, 150);
+            }, 300);
         }
 
-        upgradeBtn.onclick = function(){
-            if(upgrading) return;
-            if(upgradeBtn.textContent === 'Start Upgrade'){
-                startProgress();
-            } else {
-                upgradeOS();
-            }
-        }
-
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        function updateClock() {
-            const clockElement = document.getElementById('taskbar-clock');
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            clockElement.textContent = `${hours}:${minutes}`;
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        document.querySelector('.start-button').addEventListener('click', () => {
+        // --- 작업표시줄 시작버튼 ---
+        const startBtn = document.querySelector('.start-button');
+        startBtn.addEventListener('click', () => {
             if (startMenu.style.display === 'flex') {
                 startMenu.style.display = 'none';
             } else {
@@ -417,32 +452,115 @@
             }
         });
 
+        // --- 설정 창 ---
         function openSettings() {
+            settingsWindow.style.display = 'block';
             startMenu.style.display = 'none';
-            document.getElementById('settings-window').style.display = 'block';
+            bringToFront(settingsWindow);
         }
-
         function closeSettings() {
-            document.getElementById('settings-window').style.display = 'none';
+            settingsWindow.style.display = 'none';
         }
 
-        function manualUpgrade() {
-            closeSettings();
-            if (currentOSIndex >= osVersions.length - 1) {
-                guiBody.textContent = `Already running the latest OS: ${osVersions[currentOSIndex]} 🚀`;
-            } else {
-                upgradeOS();
-            }
-        }
-
+        // --- 파일 탐색기 창 ---
         function openFileExplorer() {
+            explorerWindow.style.display = 'block';
             startMenu.style.display = 'none';
-            document.getElementById('explorer-window').style.display = 'block';
+            bringToFront(explorerWindow);
+        }
+        function closeExplorer() {
+            explorerWindow.style.display = 'none';
         }
 
-        function closeExplorer() {
-            document.getElementById('explorer-window').style.display = 'none';
+        // --- OS 수동 업그레이드 ---
+        function manualUpgrade() {
+            if(upgrading) return;
+            startProgress();
         }
+
+        // --- Shutdown ---
+        function shutdown() {
+            startMenu.style.display = 'none';
+            shutdownOverlay.classList.add('active');
+            setTimeout(() => {
+                // 초기 상태로 되돌리기 (예: 검은 화면 유지)
+                alert("컴퓨터가 꺼졌습니다... 농담이에요! 😆 다시 시작하려면 새로고침하세요.");
+            }, 2500);
+        }
+
+        // --- 폴더 열기/닫기 기능 ---
+        const folders = document.querySelectorAll('.folder');
+        folders.forEach(folder => {
+            folder.addEventListener('click', () => {
+                folder.classList.toggle('open');
+                const fileList = folder.querySelector('.file-list');
+                if(fileList) {
+                    fileList.classList.toggle('open');
+                }
+            });
+        });
+
+        // --- 드래그 이동 기능 ---
+        function makeDraggable(element, handleSelector) {
+            const handle = element.querySelector(handleSelector);
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            handle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                const rect = element.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                element.style.transition = 'none';
+                element.style.zIndex = 1500;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    element.style.left = (e.clientX - offsetX) + 'px';
+                    element.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    element.style.zIndex = 1200;
+                }
+            });
+        }
+
+        // 적용 대상들 드래그 활성화
+        makeDraggable(settingsWindow, '.floating-window-header');
+        makeDraggable(explorerWindow, '.floating-window-header');
+
+        // --- 작업표시줄 시계 업데이트 ---
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+            if (h < 10) h = '0' + h;
+            if (m < 10) m = '0' + m;
+            if (s < 10) s = '0' + s;
+            document.getElementById('taskbar-clock').textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 창 전면으로 올리기 ---
+        function bringToFront(el) {
+            // 간단히 z-index 올리기 (모든 floating-window 중 최대값+1)
+            const windows = document.querySelectorAll('.floating-window');
+            let maxZ = 1200;
+            windows.forEach(w => {
+                const z = parseInt(window.getComputedStyle(w).zIndex);
+                if (z > maxZ) maxZ = z;
+            });
+            el.style.zIndex = maxZ + 1;
+        }
+
     </script>
 </body>
 </html>
