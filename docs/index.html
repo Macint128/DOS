@@ -21,15 +21,6 @@
             height: 100vh;
         }
 
-        .center-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
         .header {
             background-color: #111;
             padding: 10px;
@@ -89,83 +80,46 @@
             color: #FF00FF;
         }
 
-        .device-select button {
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #111;
-            color: #00FF00;
-            border: 1px solid #00FF00;
-            cursor: pointer;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16px;
+        .fade-out {
+            animation: fadeOut 1s forwards;
         }
 
-        .device-select button:hover {
-            background-color: #222;
+        .fade-in {
+            animation: fadeIn 1s forwards;
         }
 
-        .virtual-keyboard {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 5px;
-            padding: 10px;
-            border-top: 1px solid #00FF00;
-            background-color: #111;
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
         }
 
-        .virtual-keyboard button {
-            padding: 10px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16px;
-            background-color: black;
-            color: #00FF00;
-            border: 1px solid #00FF00;
-            cursor: pointer;
-        }
-
-        .virtual-keyboard button:hover {
-            background-color: #222;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 처음 디바이스 선택 화면 -->
-    <div class="center-screen" id="device-select-screen">
-        <h1>Welcome to DOS Chat</h1>
-        <p>Are you using:</p>
-        <div class="device-select">
-            <button onclick="startChat('desktop')">🖥️ Desktop</button>
-            <button onclick="startChat('mobile')">📱 Mobile</button>
-        </div>
+    <div class="header">[ DOS Chat ]</div>
+    <div class="chat-window" id="chat-window">
+        <div class="bot-message message">Hello! Welcome to DOS Chat. Type 'help' to get started.</div>
     </div>
-
-    <!-- 채팅 화면 -->
-    <div id="chat-screen" style="display:none; flex:1; flex-direction:column;">
-        <div class="header">[ DOS Chat ]</div>
-        <div class="chat-window" id="chat-window">
-            <div class="bot-message message">Hello! Welcome to DOS Chat. Type 'help' to get started.</div>
-        </div>
-        <div class="input-area">
-            <input type="text" id="chat-input" placeholder="Type your message here..." />
-            <button onclick="sendMessage()">Send</button>
-        </div>
-        <!-- 모바일용 가상 키보드 -->
-        <div class="virtual-keyboard" id="virtual-keyboard" style="display:none;"></div>
+    <div class="input-area">
+        <input type="text" id="chat-input" placeholder="Type your message here..." />
+        <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
         const chatWindow = document.getElementById('chat-window');
         const chatInput = document.getElementById('chat-input');
-        const virtualKeyboard = document.getElementById('virtual-keyboard');
 
-        function startChat(deviceType) {
-            document.getElementById('device-select-screen').style.display = 'none';
-            document.getElementById('chat-screen').style.display = 'flex';
-
-            if (deviceType === 'mobile') {
-                showVirtualKeyboard();
-            }
-        }
+        const osVersions = ["MS-DOS", "Windows 95", "Windows XP", "Windows 7", "Windows 10", "Windows 11"];
+        let currentOSIndex = 0;
 
         function appendMessage(content, type) {
             const msg = document.createElement('div');
@@ -186,9 +140,14 @@
 
         function processBotResponse(text) {
             let response = '';
+            if (text.toLowerCase() === '/dos --u upgrade') {
+                upgradeOS();
+                return;
+            }
+
             switch (text.toLowerCase()) {
                 case 'help':
-                    response = "Available commands:\n- help\n- hello\n- time\n- clear";
+                    response = "Available commands:\n- help\n- hello\n- time\n- clear\n- /dos --u upgrade";
                     break;
                 case 'hello':
                     response = "Hi there! I'm DOSBot. 🤖";
@@ -206,38 +165,35 @@
             setTimeout(() => appendMessage(response, 'bot'), 500);
         }
 
+        function upgradeOS() {
+            if (currentOSIndex >= osVersions.length - 1) {
+                appendMessage("You are already running the latest OS: " + osVersions[currentOSIndex], 'bot');
+                return;
+            }
+
+            currentOSIndex++;
+            const newOS = osVersions[currentOSIndex];
+
+            // Fade out and fade in effect (fake reboot 🤭)
+            document.body.classList.add('fade-out');
+
+            setTimeout(() => {
+                chatWindow.innerHTML = '';
+                appendMessage("System upgraded to " + newOS + " 🚀", 'bot');
+                document.body.classList.remove('fade-out');
+                document.body.classList.add('fade-in');
+
+                setTimeout(() => {
+                    document.body.classList.remove('fade-in');
+                }, 1000);
+            }, 1000);
+        }
+
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-
-        function showVirtualKeyboard() {
-            const keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
-            keys.push('SPACE', 'BACK', 'ENTER');
-
-            keys.forEach(key => {
-                const btn = document.createElement('button');
-                btn.textContent = key === 'SPACE' ? '[SPACE]' : key;
-                btn.onclick = () => handleVirtualKey(key);
-                virtualKeyboard.appendChild(btn);
-            });
-
-            virtualKeyboard.style.display = 'grid';
-        }
-
-        function handleVirtualKey(key) {
-            if (key === 'SPACE') {
-                chatInput.value += ' ';
-            } else if (key === 'BACK') {
-                chatInput.value = chatInput.value.slice(0, -1);
-            } else if (key === 'ENTER') {
-                sendMessage();
-            } else {
-                chatInput.value += key;
-            }
-            chatInput.focus();
-        }
     </script>
 </body>
 </html>
